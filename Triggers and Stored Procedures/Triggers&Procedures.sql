@@ -1,6 +1,11 @@
-------------------
-A)
-------------------
+-- =========================================================
+-- PART 3: FUNCTIONS AND TRIGGERS
+-- =========================================================
+
+
+-- =========================================================
+-- A. female_faculty()
+-- =========================================================
 
 CREATE OR REPLACE FUNCTION female_faculty()
 RETURNS NUMERIC(5,2)
@@ -24,20 +29,20 @@ BEGIN
         RETURN 0;
     END IF;
 
-    percentage :=
-        (female_count * 100.0) / total_faculty;
+    percentage := (female_count * 100.0) / total_faculty;
 
     RETURN percentage;
 END;
 $$;
 
----------------------
 
-test SELECT female_faculty();
+-- Test female_faculty()
+SELECT female_faculty();
 
----------------------
-B)
----------------------
+
+-- =========================================================
+-- B. total_people(pno)
+-- =========================================================
 
 CREATE OR REPLACE FUNCTION total_people(pno INTEGER)
 RETURNS INTEGER
@@ -67,13 +72,14 @@ BEGIN
 END;
 $$;
 
--------------------------
 
-test SELECT total_people(1001);
+-- Test total_people()
+SELECT total_people(1001);
 
--------------------------
-c)
--------------------------
+
+-- =========================================================
+-- C. faculty_restrict
+-- =========================================================
 
 CREATE OR REPLACE FUNCTION check_faculty_limit()
 RETURNS TRIGGER
@@ -89,22 +95,24 @@ BEGIN
 
     IF faculty_count >= 4 THEN
         RAISE EXCEPTION
-        'A project cannot have more than 4 Co-Investigators';
+            'A project cannot have more than 4 Co-Investigators';
     END IF;
 
     RETURN NEW;
 END;
 $$;
 
--------------------------
+
 CREATE TRIGGER faculty_restrict
 BEFORE INSERT ON CO_INVESTIGATOR
 FOR EACH ROW
 EXECUTE FUNCTION check_faculty_limit();
 
--------------------------
-D)
--------------------------
+
+-- =========================================================
+-- D. student_restrict
+-- =========================================================
+
 CREATE OR REPLACE FUNCTION check_student_limit()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -119,38 +127,15 @@ BEGIN
 
     IF project_count >= 2 THEN
         RAISE EXCEPTION
-        'A student cannot work on more than 2 projects';
+            'A student cannot work on more than 2 projects';
     END IF;
 
     RETURN NEW;
 END;
 $$;
-----------------------------
+
+
 CREATE TRIGGER student_restrict
 BEFORE INSERT ON RESEARCH_ASSISTANT
 FOR EACH ROW
 EXECUTE FUNCTION check_student_limit();
-
-
------------------------------
-TESTING
------------------------------
-
-INSERT INTO CO_INVESTIGATOR
-VALUES
-(1001, '333'),
-(1001, '444');
-
-WORKS FINE
-------------------------------
-INSERT INTO CO_INVESTIGATOR
-VALUES (1001, '111'); 
-
-RESULTS IN ERROR
-
------------------------------
-
-INSERT INTO RESEARCH_ASSISTANT
-VALUES (1002, '601');
-
-RESULTS IN ERROR
